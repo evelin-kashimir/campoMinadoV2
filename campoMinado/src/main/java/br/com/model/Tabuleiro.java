@@ -2,14 +2,16 @@ package br.com.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-public class Tabuleiro {
+public class Tabuleiro  implements CampoObservador{
   private int linhas;
   private int colunas;
   private int minas;
 
   private final List<Campo> campos = new ArrayList<>();
+  private final List<Consumer<ResultadoEvento>> observadores = new ArrayList<>();
 
   public Tabuleiro(int linhas, int colunas, int minas) {
     this.linhas = linhas;
@@ -21,16 +23,28 @@ public class Tabuleiro {
     distribuirMinas();
   }
 
+  public void registrarObservador(Consumer<ResultadoEvento> observador) {
+    observadores.add(observador);
+  }
+
+  public void notificarObservadores(boolean resultado) {
+    observadores.stream().forEach(obs -> obs.accept(new ResultadoEvento(resultado))); //verificando se está aceito
+  }
+
+
   public void abrirCampo(int linha, int coluna) {
     try {
       campos.stream()
           .filter(c -> c.getLINHA() == linha && c.getCOLUNA() == coluna)
-          .findFirst().ifPresent(Campo::abrir); //trás o primeiro e se for presente, executa a função abrir
+          .findFirst().ifPresent(Campo::abrir);
     } catch (Exception e) {
-      //FIX ME Ajustar a implementação da nova versão
-      campos.forEach(campo -> campo.setAberto(true)); //iterando sobre todos os campos e revelando todos os valores
-       ; //lançando exceção para a próxima classe
+      campos.forEach(campo -> campo.setAberto(true));
+
     }
+  }
+
+  private void mostrarMinas() {
+    campos.stream().filter(c -> c.isMinado()).forEach(c -> c.setAberto(true));
   }
 
   public void marcarCampo(int linha, int coluna) {
@@ -43,7 +57,10 @@ public class Tabuleiro {
   private void gerarCampos() {
     for(int linha = 0; linha < linhas; linha++) {
       for(int coluna = 0; coluna < colunas; coluna++) {
-        campos.add(new Campo(linha, coluna));
+        //Criando o campo e tranformando todos os campos em observadores
+        Campo campo = new Campo(linha, coluna);
+        campo.registrarObservador(this);
+        campos.add(campo);
       }
     }
   }
@@ -81,5 +98,18 @@ public class Tabuleiro {
 
   public List<Campo> getCampos() {
     return campos;
+  }
+
+  @Override
+  public void eventoOcorreu(Campo campo, CampoEvento evento) {
+    if(evento.equals(CampoEvento.EXPLODIR)){
+      System.out.println("Perdeu o Jogo!");
+      notificarObservadores(false);
+      mostrarMinas();
+    } else if (objetivoAlcancado()) {
+      System.out.println("Ganhou o Jogo!");
+      notificarObservadores(true);
+      mostrarMinas();
+    }
   }
 }

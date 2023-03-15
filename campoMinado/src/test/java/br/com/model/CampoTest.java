@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import br.com.exception.ExplosaoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -83,12 +82,6 @@ public class CampoTest {
     campo.alternarMarcacao();
     boolean result = campo.abrir();
     assertFalse(result);
-  }
-
-  @Test
-  void abrirCampoComExceptionTest() throws ExplosaoException {
-    campo.setMinado(true);
-    assertThrows(ExplosaoException.class, () -> campo.abrir());
   }
 
   @Test
