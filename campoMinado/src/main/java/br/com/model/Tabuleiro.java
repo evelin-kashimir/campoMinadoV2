@@ -6,9 +6,17 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class Tabuleiro  implements CampoObservador{
-  private int linhas;
-  private int colunas;
-  private int minas;
+  private final int linhas;
+  private final int colunas;
+  private final int minas;
+
+  public final int getLinhas() {
+    return linhas;
+  }
+
+  public final int getColunas() {
+    return colunas;
+  }
 
   private final List<Campo> campos = new ArrayList<>();
   private final List<Consumer<ResultadoEvento>> observadores = new ArrayList<>();
@@ -111,5 +119,9 @@ public class Tabuleiro  implements CampoObservador{
       notificarObservadores(true);
       mostrarMinas();
     }
+  }
+
+  public void paraCadaCampo(Consumer<Campo> funcao) {
+    campos.forEach(funcao); //percorrendo todos os campos da matriz, um for each dentro do outros
   }
 }
